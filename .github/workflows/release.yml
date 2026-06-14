@@ -4,6 +4,21 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: "Tag to create or publish"
+        required: true
+        default: "v0.1.0-test"
+      release_name:
+        description: "GitHub Release title"
+        required: true
+        default: "Codex Skill Manager test release"
+      draft:
+        description: "Create as draft"
+        required: true
+        type: boolean
+        default: true
 
 jobs:
   release:
@@ -55,9 +70,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           projectPath: apps/desktop
-          tagName: ${{ github.ref_name }}
-          releaseName: Codex Skill Manager ${{ github.ref_name }}
+          tagName: ${{ github.event.inputs.tag_name || github.ref_name }}
+          releaseName: ${{ github.event.inputs.release_name || format('Codex Skill Manager {0}', github.ref_name) }}
           releaseBody: Desktop release for Codex Skill Manager
-          releaseDraft: false
+          releaseDraft: ${{ github.event.inputs.draft || false }}
           releasePrerelease: false
           args: --target ${{ matrix.target }}
