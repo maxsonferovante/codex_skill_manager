@@ -10,28 +10,24 @@ on:
         description: "Tag to create or publish"
         required: true
         default: "v0.1.0-test"
-      release_name:
-        description: "GitHub Release title"
-        required: true
-        default: "Codex Skill Manager test release"
-      draft:
-        description: "Create as draft"
+      publish_release:
+        description: "Publish a GitHub Release after building"
         required: true
         type: boolean
-        default: true
+        default: false
 
 jobs:
-  release:
+  build:
     strategy:
       fail-fast: false
       matrix:
         include:
           - os: macos-latest
             target: aarch64-apple-darwin
-            asset_name: codex-skill-manager-macos
+            artifact_name: codex-skill-manager-macos
           - os: windows-latest
             target: x86_64-pc-windows-msvc
-            asset_name: codex-skill-manager-windows
+            artifact_name: codex-skill-manager-windows
     runs-on: ${{ matrix.os }}
     permissions:
       contents: write
@@ -48,32 +44,47 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
-      - name: Install Tauri build dependencies
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            build-essential \
-            curl \
-            file \
-            libayatana-appindicator3-dev \
-            libglib2.0-dev \
-            libgtk-3-dev \
-            libssl-dev \
-            libwebkit2gtk-4.1-dev \
-            pkg-config \
-            patchelf \
-            xdg-utils
-      - name: Build and upload release asset
+      - name: Build Tauri bundles
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           projectPath: apps/desktop
-          tagName: ${{ github.event.inputs.tag_name || github.ref_name }}
-          releaseName: ${{ github.event.inputs.release_name || format('Codex Skill Manager {0}', github.ref_name) }}
-          releaseBody: Desktop release for Codex Skill Manager
-          releaseDraft: ${{ github.event.inputs.draft || false }}
-          prerelease: false
           tauriScript: npm run tauri
           args: --target ${{ matrix.target }}
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: |
+            apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/**
+            apps/desktop/src-tauri/target/${{ matrix.target }}/release/*.exe
+            apps/desktop/src-tauri/target/${{ matrix.target }}/release/*.dmg
+            apps/desktop/src-tauri/target/${{ matrix.target }}/release/*.msi
+
+  publish-release:
+    if: github.event_name == 'push' || inputs.publish_release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download macOS artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: codex-skill-manager-macos
+          path: dist/macos
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: codex-skill-manager-windows
+          path: dist/windows
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.tag_name || github.ref_name }}
+          name: Codex Skill Manager ${{ github.event.inputs.tag_name || github.ref_name }}
+          body: Desktop release for Codex Skill Manager
+          files: |
+            dist/macos/**
+            dist/windows/**
