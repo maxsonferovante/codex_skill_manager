@@ -27,7 +27,7 @@ jobs:
       matrix:
         include:
           - os: macos-latest
-            target: universal-apple-darwin
+            target: aarch64-apple-darwin
             asset_name: codex-skill-manager-macos
           - os: windows-latest
             target: x86_64-pc-windows-msvc
@@ -74,5 +74,6 @@ jobs:
           releaseName: ${{ github.event.inputs.release_name || format('Codex Skill Manager {0}', github.ref_name) }}
           releaseBody: Desktop release for Codex Skill Manager
           releaseDraft: ${{ github.event.inputs.draft || false }}
-          releasePrerelease: false
+          prerelease: false
+          tauriScript: npm run tauri
           args: --target ${{ matrix.target }}
