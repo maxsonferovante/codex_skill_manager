@@ -56,6 +56,7 @@ jobs:
             apps/desktop/src-tauri/target/${{ matrix.target }}/release/*.exe
             apps/desktop/src-tauri/target/${{ matrix.target }}/release/*.dmg
             apps/desktop/src-tauri/target/${{ matrix.target }}/release/*.msi
+          if-no-files-found: error
       - name: Build notice
         run: echo "::notice::Build finished for ${{ matrix.os }} (${{ matrix.target }})"
 
@@ -76,6 +77,10 @@ jobs:
         with:
           name: codex-skill-manager-windows
           path: dist/windows
+      - name: Verify artifacts
+        run: |
+          test -n "$(find dist/macos -type f | head -n 1)"
+          test -n "$(find dist/windows -type f | head -n 1)"
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
