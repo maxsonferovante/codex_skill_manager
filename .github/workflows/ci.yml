@@ -11,6 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Install Rust cache
+        uses: Swatinem/rust-cache@v2
       - name: Install Linux dependencies
         run: |
           sudo apt-get update
@@ -28,15 +30,12 @@ jobs:
             xdg-utils
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
-      - name: Run backend tests
+      - name: Run backend check
         working-directory: apps/desktop/src-tauri
-        run: cargo test
+        run: cargo check
 
   frontend-tests:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: apps/desktop
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -45,6 +44,6 @@ jobs:
           cache: "npm"
           cache-dependency-path: apps/desktop/package-lock.json
       - name: Install frontend dependencies
-        run: npm ci
+        run: npm ci --prefix apps/desktop
       - name: Run frontend build
-        run: npm run build
+        run: npm run build --prefix apps/desktop

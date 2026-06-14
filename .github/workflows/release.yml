@@ -28,8 +28,7 @@ jobs:
           cache: "npm"
           cache-dependency-path: apps/desktop/package-lock.json
       - name: Install frontend dependencies
-        working-directory: apps/desktop
-        run: npm ci
+        run: npm ci --prefix apps/desktop
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
