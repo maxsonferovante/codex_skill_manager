@@ -1,0 +1,30 @@
+:root {
+  --font-sans: "DM Sans", "Inter", "Segoe UI", sans-serif;
+  --color-bg: #030712;
+  --color-surface: rgba(17, 24, 39, 0.72);
+  --color-border: rgba(243, 244, 246, 0.18);
+  --color-text-primary: #f9fafb;
+  --color-text-secondary: #d1d5db;
+  --color-accent: #7dd3fc;
+}
+
+html,
+body,
+#__nuxt {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+}
+
+.glass-panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  backdrop-filter: blur(12px);
+}
+
