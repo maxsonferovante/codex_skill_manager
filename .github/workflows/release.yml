@@ -23,7 +23,7 @@ jobs:
       matrix:
         include:
           - os: macos-latest
-            target: aarch64-apple-darwin
+            target: x86_64-apple-darwin
             artifact_name: codex-skill-manager-macos
           - os: windows-latest
             target: x86_64-pc-windows-msvc
@@ -45,13 +45,8 @@ jobs:
         with:
           targets: ${{ matrix.target }}
       - name: Build Tauri bundles
-        uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          projectPath: apps/desktop
-          tauriScript: npm run tauri
-          args: --target ${{ matrix.target }}
+        working-directory: apps/desktop
+        run: npm run tauri:build -- --target ${{ matrix.target }}
       - name: Upload release artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -61,9 +56,11 @@ jobs:
             apps/desktop/src-tauri/target/${{ matrix.target }}/release/*.exe
             apps/desktop/src-tauri/target/${{ matrix.target }}/release/*.dmg
             apps/desktop/src-tauri/target/${{ matrix.target }}/release/*.msi
+      - name: Build notice
+        run: echo "::notice::Build finished for ${{ matrix.os }} (${{ matrix.target }})"
 
   publish-release:
-    if: github.event_name == 'push' || inputs.publish_release
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.publish_release)
     needs: build
     runs-on: ubuntu-latest
     permissions:
@@ -88,3 +85,5 @@ jobs:
           files: |
             dist/macos/**
             dist/windows/**
+      - name: Release notice
+        run: echo "::notice::Release published for ${{ github.event.inputs.tag_name || github.ref_name }}"

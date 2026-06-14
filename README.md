@@ -140,6 +140,8 @@ Fluxo recomendado:
 5. criar a tag de release
 6. publicar no GitHub
 
+Os builds de release atuais geram pacote Intel no macOS (`x86_64-apple-darwin`) e pacote Windows em `x86_64-pc-windows-msvc`.
+
 ## Licenca
 
 MIT. Veja [LICENSE.md](/Users/mferovante/Documents/workspace/codex_skill_manager/LICENSE.md).
